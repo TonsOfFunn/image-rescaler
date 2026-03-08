@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Screenshot Rescaler</title>
+  <style>
+    :root {
+      --bg: #1a1b26;
+      --surface: #24283b;
+      --text: #c0caf5;
+      --muted: #98a6e3;
+      --accent: #7aa2f7;
+      --success: #9ece6a;
+      --border: #3b4261;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      min-height: 100vh;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 640px;
+    }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem 0;
+      color: var(--text);
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      width: 100%;
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 0.35rem;
+      color: var(--muted);
+    }
+    select {
+      width: 100%;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.95rem;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      cursor: pointer;
+    }
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.95rem;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+    input[type="number"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      background: var(--bg);
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 1rem;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(122, 162, 247, 0.08);
+    }
+    .drop-zone.has-image {
+      border-style: solid;
+      border-color: var(--success);
+      color: var(--success);
+    }
+    .previews {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .preview-box {
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 0.5rem;
+      text-align: center;
+    }
+    .preview-box h3 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin: 0 0 0.5rem 0;
+    }
+    .preview-box img, .preview-box canvas {
+      max-width: 100%;
+      max-height: 240px;
+      display: block;
+      margin: 0 auto;
+      border-radius: 4px;
+    }
+    .preview-box .dims {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+    }
+    button {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    button:hover { filter: brightness(1.1); }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: none;
+    }
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 1rem;
+      line-height: 1.4;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+  <h1 align="center">Screenshot Rescaler</h1>
+  <p class="subtitle">Rescale a screenshot from one resolution to another — useful when moving images between different monitor resolutions (e.g. 1080p to 2K/4K). The rescaled image has the same aspect ratio but pixel dimensions that match the target resolution.</p>
+
+  <div class="card">
+    <label for="source">Source monitor (where the screenshot was taken)</label>
+    <select id="source">
+      <option value="1920,1080">1080p — 1920×1080 (Full HD)</option>
+      <option value="2560,1440">1440p — 2560×1440 (2K / QHD)</option>
+      <option value="3840,2160">4K — 3840×2160 (UHD)</option>
+      <option value="custom">Custom (enter below)</option>
+    </select>
+    <div id="customSource" class="hidden row">
+      <div>
+        <label for="srcW">Width</label>
+        <input type="number" id="srcW" min="1" placeholder="1920">
+      </div>
+      <div>
+        <label for="srcH">Height</label>
+        <input type="number" id="srcH" min="1" placeholder="1080">
+      </div>
+    </div>
+
+    <label for="target" style="margin-top:1rem">Target resolution (e.g. your 2K/4K display)</label>
+    <select id="target">
+      <option value="1920,1080">1080p — 1920×1080 (Full HD)</option>
+      <option value="2560,1440" selected>1440p — 2560×1440 (2K / QHD)</option>
+      <option value="3840,2160">4K — 3840×2160 (UHD)</option>
+      <option value="custom">Custom (enter below)</option>
+    </select>
+    <div id="customTarget" class="hidden row">
+      <div>
+        <label for="tgtW">Width</label>
+        <input type="number" id="tgtW" min="1" placeholder="3840">
+      </div>
+      <div>
+        <label for="tgtH">Height</label>
+        <input type="number" id="tgtH" min="1" placeholder="2160">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>Screenshot image</label>
+    <div class="drop-zone" id="dropZone">
+      Drop an image here or click to choose
+    </div>
+    <input type="file" id="fileInput" accept="image/*" class="hidden" />
+
+    <div id="previewSection" class="hidden">
+      <div class="previews">
+        <div class="preview-box">
+          <h3>Original</h3>
+          <img id="previewOriginal" alt="Original" />
+          <div class="dims" id="dimsOriginal">—</div>
+        </div>
+        <div class="preview-box">
+          <h3>Rescaled (for target monitor)</h3>
+          <canvas id="previewRescaled"></canvas>
+          <div class="dims" id="dimsRescaled">—</div>
+        </div>
+      </div>
+      <button id="downloadBtn">Download rescaled image</button>
+    </div>
+  </div>
+</div>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const sourceSelect = document.getElementById('source');
+    const targetSelect = document.getElementById('target');
+    const customSource = document.getElementById('customSource');
+    const customTarget = document.getElementById('customTarget');
+    const previewSection = document.getElementById('previewSection');
+    const previewOriginal = document.getElementById('previewOriginal');
+    const previewRescaled = document.getElementById('previewRescaled');
+    const dimsOriginal = document.getElementById('dimsOriginal');
+    const dimsRescaled = document.getElementById('dimsRescaled');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    let currentImage = null;
+    let currentImageData = null;
+
+    function getSourceRes() {
+      const v = sourceSelect.value;
+      if (v === 'custom') {
+        const w = parseInt(document.getElementById('srcW').value, 10);
+        const h = parseInt(document.getElementById('srcH').value, 10);
+        return isNaN(w) || isNaN(h) ? null : [w, h];
+      }
+      return v.split(',').map(Number);
+    }
+    function getTargetRes() {
+      const v = targetSelect.value;
+      if (v === 'custom') {
+        const w = parseInt(document.getElementById('tgtW').value, 10);
+        const h = parseInt(document.getElementById('tgtH').value, 10);
+        return isNaN(w) || isNaN(h) ? null : [w, h];
+      }
+      return v.split(',').map(Number);
+    }
+
+    sourceSelect.addEventListener('change', () => {
+      customSource.classList.toggle('hidden', sourceSelect.value !== 'custom');
+      renderRescaled();
+    });
+    targetSelect.addEventListener('change', () => {
+      customTarget.classList.toggle('hidden', targetSelect.value !== 'custom');
+      renderRescaled();
+    });
+    ['srcW', 'srcH', 'tgtW', 'tgtH'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', renderRescaled);
+    });
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) loadFile(file);
+    });
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (file) loadFile(file);
+    });
+
+    function loadFile(file) {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        currentImage = img;
+        currentImageData = null;
+        previewOriginal.src = img.src;
+        dimsOriginal.textContent = img.width + ' × ' + img.height;
+        dropZone.textContent = file.name;
+        dropZone.classList.add('has-image');
+        previewSection.classList.remove('hidden');
+        renderRescaled();
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        dropZone.textContent = 'Invalid image — try again';
+      };
+      img.src = url;
+    }
+
+    function renderRescaled() {
+      if (!currentImage) return;
+      const src = getSourceRes();
+      const tgt = getTargetRes();
+      if (!src || !tgt || src[0] <= 0 || src[1] <= 0 || tgt[0] <= 0 || tgt[1] <= 0) {
+        dimsRescaled.textContent = 'Set source and target resolution';
+        return;
+      }
+      const scaleX = tgt[0] / src[0];
+      const scaleY = tgt[1] / src[1];
+      const w = Math.round(currentImage.width * scaleX);
+      const h = Math.round(currentImage.height * scaleY);
+      previewRescaled.width = w;
+      previewRescaled.height = h;
+      const ctx = previewRescaled.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(currentImage, 0, 0, currentImage.width, currentImage.height, 0, 0, w, h);
+      dimsRescaled.textContent = w + ' × ' + h + ' (scale ' + scaleX.toFixed(2) + '×)';
+      currentImageData = { canvas: previewRescaled, w, h };
+    }
+
+    downloadBtn.addEventListener('click', () => {
+      if (!currentImageData) return;
+      const link = document.createElement('a');
+      link.download = 'rescaled.png';
+      link.href = currentImageData.canvas.toDataURL('image/png');
+      link.click();
+    });
+  </script>
+</body>
+</html>
