@@ -1,4 +1,4 @@
-# Screenshot Rescaler
+# Image Rescaler
 
 A simple web tool that rescales screenshots from one resolution to another. Useful when moving images between different monitor resolutions (e.g. 1080p to 2K/4K). The rescaled image keeps the same aspect ratio but has pixel dimensions that match the target resolution.
 
